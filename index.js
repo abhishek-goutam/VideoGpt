@@ -1,40 +1,18 @@
-const fs = require("fs");
-const ytdl = require("ytdl-core");
-const ffmpeg = require("fluent-ffmpeg");
-const ffmpegStatic = require("ffmpeg-static");
+const express = require('express');
+const videoRoutes = require('./src/routes/videoRoutes');
+const path = require('path');
+const app = express();
+require('dotenv').config();
 
-// Set the path for ffmpeg
-ffmpeg.setFfmpegPath(ffmpegStatic);
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-async function extractAudioFromYoutube(url, outputPath) {
-  try {
-    if (!ytdl.validateURL(url)) {
-      throw new Error("Invalid YouTube URL");
-    }
-    
-    const videoStream = ytdl(url, { quality: "highestaudio" });
+// Routes
+app.use('/api/videos', videoRoutes);
 
-    ffmpeg(videoStream)
-      .audioBitrate(128)
-      .toFormat("mp3")
-      .save(outputPath)
-      .on("progress", (progress) => {
-        console.log(`Processing: ${progress.targetSize} KB converted`);
-      })
-      .on("end", () => {
-        console.log("Audio extraction completed:", outputPath);
-      })
-      .on("error", (err) => {
-        console.error("Error occurred during extraction:", err.message);
-      });
-  } catch (error) {
-    console.error("Failed to extract audio:", error.message);
-  }
-}
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Update the output file path for Windows
-const youtubeURL = "https://www.youtube.com/watch?v=hiVKXJ2hAdo";
-const outputFilePath = "C:/Users/abhi/Desktop/VideoGpt/extractedAudio.mp3";
-
-// Extract audio
-extractAudioFromYoutube(youtubeURL, outputFilePath);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
