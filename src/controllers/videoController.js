@@ -5,10 +5,12 @@ const Transcript = require('../models/transcript');
 exports.uploadVideoFromUrl = async (req, res) => {
   try {
     const { url } = req.body;
+
+    console.log("URL-------",url)
     if (!url) return res.status(400).json({ error: 'No URL provided' });
 
     const transcriptText = await videoProcessingService.processVideoFromUrl(url);
-
+     console.log("transcripttext",transcriptText)
     // Save transcript to database
     const newTranscript = new Transcript({
       videoId: url,  // You can also generate a unique ID or hash for this
@@ -18,7 +20,7 @@ exports.uploadVideoFromUrl = async (req, res) => {
 
     res.status(200).json({ message: 'Video processed successfully', transcript: transcriptText });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message,message: "hello" });
   }
 };
 

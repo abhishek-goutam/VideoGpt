@@ -1,19 +1,26 @@
+require('dotenv').config(); // Load environment variables from .env file
+
 const fs = require('fs');
-const openai = require('../config/openaiConfiguration');
+const { OpenAI } = require('openai'); // Import OpenAI
+
+// Initialize OpenAI API with the API key from environment variables
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, // Ensure this is set in your .env file
+});
 
 exports.extractTranscript = async (audioFilePath) => {
   try {
     const audioFile = fs.createReadStream(audioFilePath);
 
-    const response = await openai.createTranscription(
-      audioFile,
-      'whisper-1',
-      '',
-      'text',
-      1.0
-    );
+    // Use the updated method for transcription
+    const response = await openai.audio.transcriptions.create({
+      file: audioFile,
+      model: 'whisper-1', // Specify the model
+      response_format: 'text', // The desired response format
+    });
 
-    const transcript = response.data.text;
+    const transcript = response.text; // Access the transcript directly
+    console.log("transcript in the transcription service",transcript)
     return transcript;
   } catch (error) {
     console.error('Error during transcription:', error.message);
@@ -32,14 +39,15 @@ exports.queryTranscript = async (videoId, query, transcript) => {
       Please provide a response based on the content of the transcript.
     `;
 
-    const response = await openai.createCompletion({
+    // Use the updated method for chat completions
+    const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      prompt: prompt,
+      messages: [{ role: 'user', content: prompt }],
       max_tokens: 150,
       temperature: 0.7,
     });
 
-    const answer = response.data.choices[0].text.trim();
+    const answer = response.choices[0].message.content.trim(); // Access the message content
     return answer;
   } catch (error) {
     console.error('Error during content analysis:', error.message);
