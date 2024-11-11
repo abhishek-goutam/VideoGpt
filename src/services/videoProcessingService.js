@@ -34,7 +34,6 @@ exports.processVideoFromUrl = async (url) => {
 
           // Extract the transcript
           const transcript = await transcriptionService.extractTranscript(outputFilePath);
-          console.log("transcript ",transcript)
           resolve(transcript);
         })
         .on('error', (err) => {

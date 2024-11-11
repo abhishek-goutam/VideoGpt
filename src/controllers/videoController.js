@@ -5,8 +5,7 @@ const Transcript = require('../models/transcript');
 exports.uploadVideoFromUrl = async (req, res) => {
   try {
     const { url } = req.body;
-
-    console.log("URL-------",url)
+    
     if (!url) return res.status(400).json({ error: 'No URL provided' });
 
     const transcriptText = await videoProcessingService.processVideoFromUrl(url);

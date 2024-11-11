@@ -1,30 +1,45 @@
-require('dotenv').config(); // Load environment variables from .env file
-
+require('dotenv').config(); 
 const fs = require('fs');
-const { OpenAI } = require('openai'); // Import OpenAI
+const { OpenAI } = require('openai'); 
 
-// Initialize OpenAI API with the API key from environment variables
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // Ensure this is set in your .env file
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 exports.extractTranscript = async (audioFilePath) => {
   try {
     const audioFile = fs.createReadStream(audioFilePath);
 
-    // Use the updated method for transcription
     const response = await openai.audio.transcriptions.create({
       file: audioFile,
-      model: 'whisper-1', // Specify the model
-      response_format: 'text', // The desired response format
+      model: 'whisper-1',
+      response_format: 'text',
     });
 
-    const transcript = response.text; // Access the transcript directly
-    console.log("transcript in the transcription service",transcript)
+    console.log("Response:", response);
+    const transcript = response; 
+console.log("transcript", transcript)
+
+    // Access 'text' from the response
     return transcript;
   } catch (error) {
+    // Enhanced error logging with detailed messages
     console.error('Error during transcription:', error.message);
-    throw new Error('Failed to transcribe audio');
+
+    // Check if the error is from OpenAI API
+    if (error.response) {
+      console.error('OpenAI API Error:');
+      console.error('  Status Code:', error.response.status);
+      console.error('  Response Data:', error.response.data); // Log the complete response data for better insight
+    } else if (error.request) {
+      console.error('No response received from OpenAI API:');
+      console.error('  Request Details:', error.request); // Log request details that were sent
+    } else {
+      console.error('General Error:', error); // Log any other errors
+    }
+
+    // Provide a detailed error message
+    throw new Error(`Failed to transcribe audio file at ${audioFilePath}: ${error.message}`);
   }
 };
 
